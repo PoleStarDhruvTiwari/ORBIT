@@ -1,96 +1,62 @@
-from sqlalchemy import Column, String, Boolean, ForeignKey, DateTime, func
-from sqlalchemy.dialects.postgresql import UUID as PGUUID
+from sqlalchemy import (
+    Column,
+    BigInteger,
+    Boolean,
+    Text,
+    DateTime,
+    ForeignKey,
+    Enum as SAEnum,
+    func,
+)
 from sqlalchemy.orm import relationship
-import uuid
 
 from app.database import Base
+
+
+ROLE_NAME_ENUM = SAEnum(
+    "super_admin",
+    "admin",
+    "qa",
+    "recorder",
+    name="role_name_enum",
+    create_type=False,
+)
 
 
 class Role(Base):
     __tablename__ = "roles"
 
-    role_id = Column(
-        PGUUID(as_uuid=True),
-        primary_key=True,
-        default=uuid.uuid4
-    )
+    role_id = Column(BigInteger, primary_key=True, autoincrement=True)
 
-    name = Column(
-        String(50),
-        unique=True,
-        nullable=False
-    )
+    name = Column(ROLE_NAME_ENUM, unique=True, nullable=False)
+    description = Column(Text, nullable=False)
 
+    can_assign_tasks = Column(Boolean, nullable=False, server_default="false", default=False)
+    can_create_tasks = Column(Boolean, nullable=False, server_default="false", default=False)
+    can_review_quality = Column(Boolean, nullable=False, server_default="false", default=False)
+    can_manage_users = Column(Boolean, nullable=False, server_default="false", default=False)
+    can_view_reports = Column(Boolean, nullable=False, server_default="false", default=False)
 
-    description = Column(
-        String,
-        nullable=True
-    )
+    created_by = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
+    updated_by = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
 
-    can_assign_tasks = Column(
-        Boolean,
-        nullable=False,
-        default=False,
-        server_default="false"
-    )
-
-    can_create_tasks = Column(
-        Boolean,
-        nullable=False,
-        default=False,
-        server_default="false"
-    )
-
-    can_review_quality = Column(
-        Boolean,
-        nullable=False,
-        default=False,
-        server_default="false"
-    )
-
-    can_manage_users = Column(
-        Boolean,
-        nullable=False,
-        default=False,
-        server_default="false"
-    )
-
-    can_view_reports = Column(
-        Boolean,
-        nullable=False,
-        default=False,
-        server_default="false"
-    )
-
-    created_by = Column(
-        PGUUID(as_uuid=True),
-        ForeignKey("users.user_id"),
-        nullable=False
-    )
-
-    updated_by = Column(
-        PGUUID(as_uuid=True),
-        ForeignKey("users.user_id"),
-        nullable=True
-    )
-
-    created_at = Column(
-        DateTime(timezone=True),
-        nullable=False,
-        server_default=func.now()
-    )
-
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at = Column(
         DateTime(timezone=True),
         nullable=False,
         server_default=func.now(),
-        onupdate=func.now()
+        onupdate=func.now(),
     )
-
-    # Relationships
 
     users = relationship(
         "User",
         back_populates="role",
-        foreign_keys="User.role_id"
+        foreign_keys="User.role_id",
+    )
+
+    role_permissions = relationship(
+        "RolePermission",
+        back_populates="role",
+        cascade="all, delete-orphan",
+        foreign_keys="RolePermission.role_id",
     )

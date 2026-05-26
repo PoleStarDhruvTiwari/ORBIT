@@ -1,56 +1,59 @@
-from sqlalchemy import Column, String, Time, Boolean, ForeignKey, DateTime, func
-from sqlalchemy.dialects.postgresql import UUID as PGUUID
+from sqlalchemy import (
+    Column,
+    BigInteger,
+    Time,
+    Boolean,
+    Text,
+    DateTime,
+    ForeignKey,
+    Enum as SAEnum,
+    CheckConstraint,
+    func,
+)
 from sqlalchemy.orm import relationship
-import uuid
 
 from app.database import Base
 
 
+SHIFT_NAME_ENUM = SAEnum(
+    "morning",
+    "evening",
+    "night",
+    name="shift_name_enum",
+    create_type=False,
+)
+
+
 class Shift(Base):
     __tablename__ = "shifts"
-
-    shift_id = Column(
-        PGUUID(as_uuid=True),
-        primary_key=True,
-        default=uuid.uuid4
+    __table_args__ = (
+        CheckConstraint("start_time <> end_time", name="chk_shift_time"),
     )
 
-    name = Column(String(20), nullable=False)
+    shift_id = Column(BigInteger, primary_key=True, autoincrement=True)
+
+    name = Column(SHIFT_NAME_ENUM, unique=True, nullable=False)
 
     start_time = Column(Time, nullable=False)
     end_time = Column(Time, nullable=False)
 
-    description = Column(String, nullable=True)
+    description = Column(Text, nullable=False)
 
-    is_active = Column(Boolean, default=True)
+    is_active = Column(Boolean, nullable=False, server_default="true", default=True)
 
-    created_by = Column(
-        PGUUID(as_uuid=True),
-        ForeignKey("users.user_id"),
-        nullable=True
-    )
+    created_by = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
+    updated_by = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
 
-    updated_by = Column(
-        PGUUID(as_uuid=True),
-        ForeignKey("users.user_id"),
-        nullable=True
-    )
-
-    created_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now()
-    )
-
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at = Column(
         DateTime(timezone=True),
+        nullable=False,
         server_default=func.now(),
-        onupdate=func.now()
+        onupdate=func.now(),
     )
-
-    # Relationships
 
     users = relationship(
         "User",
         back_populates="shift",
-        foreign_keys="User.shift_id"
+        foreign_keys="User.shift_id",
     )

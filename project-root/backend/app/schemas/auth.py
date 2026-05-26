@@ -1,10 +1,10 @@
 from pydantic import BaseModel
-from uuid import UUID
-from datetime import datetime
 from typing import Optional
+
 
 class GoogleAuth(BaseModel):
     id_token: str
+
 
 class Token(BaseModel):
     access_token: str
@@ -12,14 +12,17 @@ class Token(BaseModel):
     token_type: str = "bearer"
     expires_in: int
 
+
 class TokenRefresh(BaseModel):
     access_token: str
     expires_in: int
 
+
 class UserSessionInfo(BaseModel):
-    user_id: UUID
+    user_id: int
     email: str
     name: str
     role: str
-    shift_id: Optional[UUID]
+    shift_id: Optional[int]
+    is_approved: bool
     is_active: bool

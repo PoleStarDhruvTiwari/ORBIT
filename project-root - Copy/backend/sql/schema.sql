@@ -1,0 +1,17 @@
+CREATE TABLE IF NOT EXISTS roles (
+    role_id UUID PRIMARY KEY,
+    name VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS shifts (
+    shift_id UUID PRIMARY KEY,
+    name VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS users (
+    user_id UUID PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    role_id UUID,
+    shift_id UUID
+);

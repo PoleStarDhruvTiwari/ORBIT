@@ -1,0 +1,20 @@
+ALTER TABLE users
+ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
+
+
+
+ALTER TABLE users
+DROP CONSTRAINT IF EXISTS fk_user_role;
+
+ALTER TABLE users
+ADD CONSTRAINT fk_user_role
+FOREIGN KEY (role_id)
+REFERENCES roles(role_id);
+
+ALTER TABLE users
+DROP CONSTRAINT IF EXISTS fk_user_shift;
+
+ALTER TABLE users
+ADD CONSTRAINT fk_user_shift
+FOREIGN KEY (shift_id)
+REFERENCES shifts(shift_id);
